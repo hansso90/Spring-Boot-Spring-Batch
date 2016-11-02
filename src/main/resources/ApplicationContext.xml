@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   					   http://www.springframework.org/schema/batch
+                           http://www.springframework.org/schema/batch/spring-batch-3.0.xsd">
+
+    <bean id="jobBuilders" class="org.springframework.batch.core.configuration.annotation.JobBuilderFactory">
+        <constructor-arg ref="jobRepository"/>
+    </bean>
+
+    <bean id="stepBuilders" class="org.springframework.batch.core.configuration.annotation.StepBuilderFactory">
+        <constructor-arg index="0" ref="jobRepository"/>
+        <constructor-arg index="1" ref="transactionManager"/>
+    </bean>
+
+    <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository" />
+    </bean>
+
+    <bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="fillDataTasklet" class="nl.lemkes.springboot.standalone.batch.step1.FillDataTasklet"/>
+
+    <batch:job id="uselessJob" restartable="true" job-repository="jobRepository">
+        <batch:step id="step1">
+            <batch:tasklet ref="fillDataTasklet" allow-start-if-complete="true" />
+        </batch:step>
+    </batch:job>
+
+</beans>
